@@ -79,7 +79,7 @@ public class foundLocalActivity extends Activity implements View.OnClickListener
                 begin.setVisibility(View.GONE);
                 seaching.setVisibility(View.VISIBLE);
                 thepath.setVisibility(View.VISIBLE);
-                new seachmusicThread().start();
+                new SearchMusicThread().start();
                 break;//开始搜索
             case R.id.allchoose:
                 if(all){
@@ -149,17 +149,17 @@ public class foundLocalActivity extends Activity implements View.OnClickListener
     * 处理音乐扫描
     *
     */
-    private class seachmusicThread extends Thread{
+    private class SearchMusicThread extends Thread{
         @Override
         public void run() {
             boolean sdCardExist = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED); //判断sd卡是否存在
             if(sdCardExist){
-                File sd=Environment.getExternalStorageDirectory();
-                readfile(sd.getPath());
-                Message m=new Message();
+                File sd = Environment.getExternalStorageDirectory();
+                ReadFile(sd.getPath());
+                Message m = new Message();
                 m.what=1;
                 m.obj=temlist;
-                myhandler.sendMessage(m);
+                handler.sendMessage(m);
             }else{
                 Toast.makeText(getApplicationContext(),"请插入sd卡",Toast.LENGTH_SHORT).show();
             }
@@ -168,33 +168,31 @@ public class foundLocalActivity extends Activity implements View.OnClickListener
     /*
     ******扫描音乐线程********
     */
-    public void readfile(String p){
+    public void ReadFile(String p){
 
-        File[] musicfile=new File(p).listFiles();//获取根目录下所有文件夹及文件
-        if(musicfile==null){
+        File[] musicFiles=new File(p).listFiles();//获取根目录下所有文件夹及文件
+        if(musicFiles==null){
             return;
         }
-        for(int i=0;i<musicfile.length;i++){
+        for(int i=0;i<musicFiles.length;i++){
 
-            String path=musicfile[i].getAbsolutePath();
+            String path=musicFiles[i].getAbsolutePath();
             Message m=new Message();
             m.what=0;
             m.obj=path;
-            myhandler.sendMessage(m);//发送当前路径
-            if(musicfile[i].isFile()&&musicfile[i].getName().endsWith("mp3")){//是文件并且后缀为mp3
+            handler.sendMessage(m);//发送当前路径
+            if(musicFiles[i].isFile()&&musicFiles[i].getName().endsWith("mp3")){//是文件并且后缀为mp3
                 Map<String,Object> map= new HashMap<>();
-                map.put("musicname",musicfile[i].getName().replace(".mp3",""));//文件名字
-                map.put("path",musicfile[i].getAbsolutePath());
+                map.put("musicname",musicFiles[i].getName().replace(".mp3",""));//文件名字
+                map.put("path",musicFiles[i].getAbsolutePath());
                 temlist.add(map);
-            }else if(musicfile[i].isDirectory()&&!musicfile[i].getAbsolutePath().endsWith("tencent")){//为文件夹递归扫描
-                readfile(musicfile[i].getAbsolutePath());
+            }else if(musicFiles[i].isDirectory()&&!musicFiles[i].getAbsolutePath().endsWith("tencent")){//为文件夹递归扫描
+                ReadFile(musicFiles[i].getAbsolutePath());
             }
         }//循环遍历
-    }/*
-     *************扫描音乐
-     */
+    }
     List<Map<String, Object>> l;
-    Handler myhandler=new Handler(){
+    Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
@@ -250,7 +248,5 @@ public class foundLocalActivity extends Activity implements View.OnClickListener
                     break;
             }
         }
-    };/*
-    ******处理子线程改变ui请求********
-    */
+    };
 }
